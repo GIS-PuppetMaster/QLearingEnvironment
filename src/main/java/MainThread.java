@@ -35,7 +35,7 @@ class MainThread implements Runnable {
     /**
      * 记录上一次的actionMap，其中的Time时间戳用来判断文件是否更新
      */
-    private HashMap<String,Integer> actionMap_old=new HashMap<String,Integer>(){
+    private HashMap<String,Integer> actionMapOld =new HashMap<String,Integer>(){
         {
             put("actionZkx",0);
             put("actionCbz",0);
@@ -51,6 +51,11 @@ class MainThread implements Runnable {
         state.put("act2",(Integer) agentCbz.getState().get("act"));
         state.put("dis",Math.abs((Integer) agentZkx.getState().get("dis")-(Integer) agentCbz.getState().get("dis")));
     }
+    private void setActionMapOld(int actionZkx,int actionCbz){
+        actionMapOld.put("actionZkx",actionZkx);
+        actionMapOld.put("actionCbz",actionCbz);
+        actionMapOld.put("time", (int) System.currentTimeMillis());
+    }
     private void job() throws IOException {
 
         agentZkx.reward=0;
@@ -61,11 +66,13 @@ class MainThread implements Runnable {
         Data data=new Data();
         HashMap actionMap = data.input();
         /*检测action.json是否更新了*/
-        if(!actionMap.get("Time").equals(actionMap_old.get("Time"))) {
+        if(!actionMap.get("Time").equals(actionMapOld.get("Time"))) {
             Number tempZ = (Number) actionMap.get("actionZkx");
             int actionZkx = tempZ.intValue();
             Number tempC = (Number) actionMap.get("actionCbz");
             int actionCbz = tempC.intValue();
+            /*设置当前actionMap为actionMapOld*/
+            setActionMapOld(actionZkx,actionCbz);
             /*双方状态设置,此处不进行实际攻击*/
             setState(actionZkx, agentZkx);
             setState(actionCbz, agentCbz);
@@ -96,7 +103,8 @@ class MainThread implements Runnable {
             agent.holdSelf(action);
         }
         else if(action >=6&& action <=8){
-            agent.getState().put("act", action);//设置攻击状态
+            //设置攻击状态
+            agent.getState().put("act", action);
         }
         MainScreenOutput mainScreenOutput=new MainScreenOutput();
         mainScreenOutput.showStateUpdate(agent);
@@ -105,11 +113,15 @@ class MainThread implements Runnable {
     @Override
     public void run() {
         //1000ms,50帧，1000/50=20ms 作为sleep时间
-        long update=0;//记录环境运行时间
-        long sleep=0;//记录环境线程睡眠的时间
+        //记录环境运行时间
+        long update=0;
+        //记录环境线程睡眠的时间
+        long sleep=0;
         while(true){
-            long before=System.nanoTime();//获取当前时间(ns)
-            long t=sleep+update;//记录上一帧花费的时间(ms)
+            //获取当前时间(ns)
+            long before=System.nanoTime();
+            //记录上一帧花费的时间(ms)
+            long t=sleep+update;
             /*
             do something
              */
@@ -121,8 +133,10 @@ class MainThread implements Runnable {
             if(deadZ||deadC){
                 break;
             }
-            update=(System.nanoTime()-before)/1000000L;//计算do something 的总耗时（ms)
-            sleep=Math.max(2,20-update);//此次节拍内的剩余休眠时间
+            //计算do something 的总耗时（ms)
+            update=(System.nanoTime()-before)/1000000L;
+            //此次节拍内的剩余休眠时间
+            sleep=Math.max(2,20-update);
 
             try{
                 Thread.sleep(sleep);

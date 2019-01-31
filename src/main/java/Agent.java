@@ -18,8 +18,8 @@ public class Agent {
     int reward=0;
     /**Agent的id*/
     private String id="";
-    /**Agent的状态*/
-    private LinkedHashMap<String, Integer>state= new LinkedHashMap<>();//按输入顺序排序，非线程安全
+    /**Agent的状态,按输入顺序排序,非线程安全*/
+    private LinkedHashMap<String, Integer>state= new LinkedHashMap<>();
     /**Agent的动作列表*/
     /*
     final Hashtable action=new Hashtable(){
@@ -37,6 +37,7 @@ public class Agent {
         }
     };//无排序，线程安全
     */
+
     Agent(String id){
         /*初始化id*/
         this.id=id;
@@ -48,7 +49,8 @@ public class Agent {
          * dis   Agent在环境中的坐标,[0,8]
          */
         state.put("blood",8);
-        state.put("sol",1);//1为站着
+        //1为站着
+        state.put("sol",1);
         state.put("act",0);
         state.put("dis",0);
 
@@ -123,7 +125,8 @@ public class Agent {
         else if(act==5&&distance<=1) {
             if(this.state.get("act")!=8) {
                 this.state.put("blood",this.state.get("blood")-1);
-                this.state.put("sol",0);//倒下
+                //倒下
+                this.state.put("sol",0);
                 /*如果此时已倒下*/
                 /*在getHurt函数后会有一个函数通过检测state_old的值让agent站起来*/
                 System.out.println(id+",state:act="+state.get("act")+"  hurtType:"+act+"  Blood Lost 2!");
