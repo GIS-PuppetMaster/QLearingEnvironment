@@ -167,10 +167,12 @@ public class Agent {
     boolean judgeDie(){
         if(this.state.get("blood")==0){
             reward-=20;
+            System.out.println(this.getId()+ " blood state: "+this.getState().get("blood"));
             return true;
         }
         else{
             reward+=20;
+            System.out.println(this.getId()+" blood state: "+this.getState().get("blood"));
             return false;
         }
     }
