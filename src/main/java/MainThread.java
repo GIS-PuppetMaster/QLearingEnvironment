@@ -35,11 +35,11 @@ class MainThread implements Runnable {
     /**
      * 记录上一次的actionMap，其中的Time时间戳用来判断文件是否更新
      */
-    private HashMap<String,Integer> actionMapOld =new HashMap<String,Integer>(){
+    private HashMap<String, Long> actionMapOld =new HashMap<String, Long>(){
         {
-            put("actionZkx",0);
-            put("actionCbz",0);
-            put("Time",0);
+            put("actionZkx",  0L);
+            put("actionCbz", 0L);
+            put("Time",0L);
         }
     };
     private void setStateForOutPut(){
@@ -51,10 +51,10 @@ class MainThread implements Runnable {
         state.put("act2",(Integer) agentCbz.getState().get("act"));
         state.put("dis",Math.abs((Integer) agentZkx.getState().get("dis")-(Integer) agentCbz.getState().get("dis")));
     }
-    private void setActionMapOld(int actionZkx,int actionCbz){
+    private void setActionMapOld(Long actionZkx, Long actionCbz){
         actionMapOld.put("actionZkx",actionZkx);
         actionMapOld.put("actionCbz",actionCbz);
-        actionMapOld.put("time", (int) System.currentTimeMillis());
+        actionMapOld.put("Time", System.currentTimeMillis());
     }
     private void job() throws IOException {
 
@@ -68,10 +68,14 @@ class MainThread implements Runnable {
         /*检测action.json是否更新了*/
         if(!actionMap.get("Time").equals(actionMapOld.get("Time"))) {
             Number tempZ = (Number) actionMap.get("actionZkx");
-            int actionZkx = tempZ.intValue();
+            Long actionZkx = Long.valueOf(tempZ.intValue());
             Number tempC = (Number) actionMap.get("actionCbz");
-            int actionCbz = tempC.intValue();
+            Long actionCbz = Long.valueOf(tempC.intValue());
             /*设置当前actionMap为actionMapOld*/
+            /*
+            *1548988017986
+            *1548988174
+            */
             setActionMapOld(actionZkx,actionCbz);
             /*双方状态设置,此处不进行实际攻击*/
             setState(actionZkx, agentZkx);
@@ -95,7 +99,7 @@ class MainThread implements Runnable {
 
     }
 
-    private void setState(int action, Agent agent) {
+    private void setState(Long action, Agent agent) {
         if(action ==1|| action ==2){
             agent.move(action);
         }

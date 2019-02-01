@@ -4,7 +4,7 @@ import java.util.LinkedHashMap;
 
 
 public class MainScreenOutput {
-    /**Agent的动作列表*/
+    /*Agent的动作列表*/
     final Hashtable action=new Hashtable(){
         {
             //始化action

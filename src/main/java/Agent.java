@@ -64,8 +64,8 @@ public class Agent {
     public String getId(){
         return this.id;
     }
-    int move(int k){
-        int dis= (int) state.get("dis");
+    int move(Long k){
+        int dis=  state.get("dis");
         if(k==1) {
             if(dis+1<=8) {
                 dis += 1;
@@ -150,7 +150,7 @@ public class Agent {
      * @param act 对该Agent采取防御的类型
 
      */
-    void holdSelf(int act) {
+    void holdSelf(Long act) {
         if (act==3) {
             this.state.put("act", 3);
             System.out.println(id + ",state:act=" + state.get("act"));
