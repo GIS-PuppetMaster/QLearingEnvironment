@@ -15,7 +15,7 @@ import java.util.LinkedHashMap;
 
  */
 public class Agent {
-    int reward=0;
+    long reward=0;
     /**Agent的id*/
     private String id="";
     /**Agent的状态,按输入顺序排序,非线程安全*/

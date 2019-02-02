@@ -19,7 +19,11 @@ import java.util.Hashtable;
 
  */
 class MainThread implements Runnable {
-    private Hashtable<String,Integer> state=new Hashtable<String, Integer>();
+    int flag=0;
+    public MainThread(int flag){
+        this.flag=flag;
+    }
+    private Hashtable<String,Long> state= new Hashtable<String, Long>();
     private Agent agentZkx=new Agent("zkx");
     private Agent agentCbz=new Agent("cbz");
     /**
@@ -27,10 +31,10 @@ class MainThread implements Runnable {
      */
     private boolean deadZ=false;
     private boolean deadC=false;
-    private Hashtable<String,Integer> reward=new Hashtable<String,Integer>(){
+    private Hashtable<String,Long> reward=new Hashtable<String,Long>(){
         {
-            put("rewardZkx",0);
-            put("rewardCbz",0);
+            put("rewardZkx",0L);
+            put("rewardCbz",0L);
         }};
     /**
      * 记录上一次的actionMap，其中的Time时间戳用来判断文件是否更新
@@ -43,18 +47,23 @@ class MainThread implements Runnable {
         }
     };
     private void setStateForOutPut(){
-        state.put("blood1", (Integer) agentZkx.getState().get("blood"));
-        state.put("blood2",(Integer) agentCbz.getState().get("blood"));
-        state.put("sol1",(Integer) agentZkx.getState().get("sol"));
-        state.put("sol2",(Integer) agentCbz.getState().get("sol"));
-        state.put("act1",(Integer) agentZkx.getState().get("act"));
-        state.put("act2",(Integer) agentCbz.getState().get("act"));
-        state.put("dis",Math.abs((Integer) agentZkx.getState().get("dis")-(Integer) agentCbz.getState().get("dis")));
+        state.put("blood1", Long.valueOf(agentZkx.getState().get("blood").toString()));
+        state.put("blood2", Long.valueOf(agentCbz.getState().get("blood").toString()));
+        state.put("sol1",   Long.valueOf(agentZkx.getState().get("sol").toString()));
+        state.put("sol2",   Long.valueOf(agentCbz.getState().get("sol").toString()));
+        state.put("act1",   Long.valueOf(agentZkx.getState().get("act").toString()));
+        state.put("act2",   Long.valueOf(agentCbz.getState().get("act").toString()));
+        state.put("dis",Math.abs((Long.valueOf(agentZkx.getState().get("dis").toString()))-(Long.valueOf(agentCbz.getState().get("dis").toString()))));
     }
-    private void setActionMapOld(Long actionZkx, Long actionCbz){
+    private void setStateForTrainingOutPut(){
+        setStateForOutPut();
+        state.put("reward1",agentZkx.reward);
+        state.put("reward2",agentCbz.reward);
+    }
+    private void setActionMapOld(Long actionZkx, Long actionCbz,Long time){
         actionMapOld.put("actionZkx",actionZkx);
         actionMapOld.put("actionCbz",actionCbz);
-        actionMapOld.put("Time", System.currentTimeMillis());
+        actionMapOld.put("Time", time);
     }
     private void job() throws IOException {
 
@@ -66,7 +75,9 @@ class MainThread implements Runnable {
         Data data=new Data();
         HashMap actionMap = data.input();
         /*检测action.json是否更新了*/
-        if(!actionMap.get("Time").equals(actionMapOld.get("Time"))) {
+        double nowTime= (double) actionMap.get("Time");
+        long Time= (long) nowTime;
+        if(Time!=actionMapOld.get("Time")) {
             Number tempZ = (Number) actionMap.get("actionZkx");
             Long actionZkx = Long.valueOf(tempZ.intValue());
             Number tempC = (Number) actionMap.get("actionCbz");
@@ -76,8 +87,9 @@ class MainThread implements Runnable {
             *1548988017986
             *1548988174
             */
-            setActionMapOld(actionZkx,actionCbz);
-            /*双方状态设置,此处不进行实际攻击*/
+            double time= (double) actionMap.get("Time");
+            setActionMapOld(actionZkx,actionCbz,  (long)time);
+            /*双方状态设置,此处不进行实际攻击，只设置action*/
             setState(actionZkx, agentZkx);
             setState(actionCbz, agentCbz);
             /*进行打斗*/
@@ -86,15 +98,28 @@ class MainThread implements Runnable {
             /*死亡处理判断*/
             deadZ = agentZkx.judgeDie();
             deadC = agentCbz.judgeDie();
-            /*汇总处理要输出的state*/
-            setStateForOutPut();
-            String writePathState = "src/main/resources/state.json";
-            data.output(state, writePathState);
-            /*汇总输出reward*/
-            reward.put("rewardZkx", agentZkx.reward);
-            reward.put("rewardCbz", agentCbz.reward);
-            String writePathReward = "src/main/resources/reward.json";
-            data.output(reward, writePathReward);
+            /*测试模式*/
+            if(flag==1) {
+                /*汇总处理要输出的state*/
+                setStateForOutPut();
+                String writePathState = "src/main/resources/state.json";
+                data.output(state, writePathState);
+                /*汇总输出reward*/
+               /* reward.put("rewardZkx", agentZkx.reward);
+                reward.put("rewardCbz", agentCbz.reward);
+                String writePathReward = "src/main/resources/reward.json";
+                data.output(reward, writePathReward);
+                */
+            }
+            /*训练模式*/
+            else {
+                /*包含reward*/
+                setStateForTrainingOutPut();
+                String writePathState = "src/main/resources/nextState.json";
+                data.output(state, writePathState);
+            }
+            System.out.println();
+            System.out.println();
         }
 
     }
@@ -148,8 +173,7 @@ class MainThread implements Runnable {
             catch (InterruptedException e){
                 e.printStackTrace();
             }
-            System.out.println("");
-            System.out.println("");
+
         }
     }
 }

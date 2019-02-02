@@ -35,8 +35,8 @@ class Data {
         bufferedReader.close();
         return actionMap;
     }
-    void output(Hashtable<String, Integer> state, String writePath) throws IOException {
-        state.put("Time", (int) System.currentTimeMillis());
+    void output(Hashtable<String, Long> state, String writePath) throws IOException {
+        state.put("Time",  System.currentTimeMillis());
         Gson gson=new Gson();
         String ret = gson.toJson(state, Hashtable.class);
         /*---------------------*/

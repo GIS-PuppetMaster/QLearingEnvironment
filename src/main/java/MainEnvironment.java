@@ -1,3 +1,5 @@
+import java.util.Scanner;
+
 /**
 
  * Copyright (C), 2018-2021, HIT Zkx info. Edu.
@@ -14,7 +16,10 @@
  */
 public class MainEnvironment {
     public static void main(String args[]) {
-        MainThread mainThread=new MainThread();
+        System.out.println("请选择运行模式：0：训练模式 1：测试模式");
+        Scanner scanner=new Scanner(System.in);
+        int flag=scanner.nextInt();
+        MainThread mainThread=new MainThread(flag);
         mainThread.run();
 
     }
