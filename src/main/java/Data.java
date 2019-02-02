@@ -11,9 +11,10 @@ class Data {
      * @return  返回解析出来的hashmap
      * @throws IOException
      */
-    HashMap input() throws IOException {
+    HashMap input(String readPath) throws IOException {
+        ans=new StringBuffer();
+        actionMap=new HashMap();
         Gson gson=new Gson();
-        String readPath = "src/main/resources/action.json";
         File actionFile= new File(readPath);
         InputStreamReader reader=new InputStreamReader(
                 new FileInputStream(actionFile));

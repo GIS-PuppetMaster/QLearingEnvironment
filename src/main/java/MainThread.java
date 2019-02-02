@@ -1,5 +1,7 @@
 import java.io.IOException;
+import java.nio.DoubleBuffer;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 
 /**
@@ -46,6 +48,7 @@ class MainThread implements Runnable {
             put("Time",0L);
         }
     };
+    private long traingingTimeOld=0;
     private void setStateForOutPut(){
         state.put("blood1", Long.valueOf(agentZkx.getState().get("blood").toString()));
         state.put("blood2", Long.valueOf(agentCbz.getState().get("blood").toString()));
@@ -73,37 +76,37 @@ class MainThread implements Runnable {
         //JsonObject jsonObject=parser.parse(String.valueOf(ac)).getAsJsonObject();
         /*输入action*/
         Data data=new Data();
-        HashMap actionMap = data.input();
-        /*检测action.json是否更新了*/
-        double nowTime= (double) actionMap.get("Time");
-        long Time= (long) nowTime;
-        if(Time!=actionMapOld.get("Time")) {
-            Number tempZ = (Number) actionMap.get("actionZkx");
-            Long actionZkx = Long.valueOf(tempZ.intValue());
-            Number tempC = (Number) actionMap.get("actionCbz");
-            Long actionCbz = Long.valueOf(tempC.intValue());
-            /*设置当前actionMap为actionMapOld*/
-            /*
-            *1548988017986
-            *1548988174
-            */
-            double time= (double) actionMap.get("Time");
-            setActionMapOld(actionZkx,actionCbz,  (long)time);
-            /*双方状态设置,此处不进行实际攻击，只设置action*/
-            setState(actionZkx, agentZkx);
-            setState(actionCbz, agentCbz);
-            /*进行打斗*/
-            agentZkx.attack(agentCbz);
-            agentCbz.attack(agentZkx);
-            /*死亡处理判断*/
-            deadZ = agentZkx.judgeDie();
-            deadC = agentCbz.judgeDie();
-            /*测试模式*/
-            if(flag==1) {
+        HashMap actionMap = data.input("src/main/resources/action.json");
+        HashMap stateMap= data.input("src/main/resources/trainingState.json");
+        if(flag==1) {
+            /*检测action.json是否更新了*/
+            double nowTime= (double) actionMap.get("Time");
+            long Time= (long) nowTime;
+            if (Time != actionMapOld.get("Time")) {
+                /*测试模式*/
+
+                Number tempZ = (Number) actionMap.get("actionZkx");
+                Long actionZkx = Long.valueOf(tempZ.intValue());
+                Number tempC = (Number) actionMap.get("actionCbz");
+                Long actionCbz = Long.valueOf(tempC.intValue());
+                /*设置当前actionMap为actionMapOld*/
+                double time = (double) actionMap.get("Time");
+                setActionMapOld(actionZkx, actionCbz, (long) time);
+                /*双方状态设置,此处不进行实际攻击，只设置action*/
+                setState(actionZkx, agentZkx);
+                setState(actionCbz, agentCbz);
+                /*进行打斗*/
+                agentZkx.attack(agentCbz);
+                agentCbz.attack(agentZkx);
+                /*死亡处理判断*/
+                deadZ = agentZkx.judgeDie();
+                deadC = agentCbz.judgeDie();
                 /*汇总处理要输出的state*/
                 setStateForOutPut();
                 String writePathState = "src/main/resources/state.json";
                 data.output(state, writePathState);
+                System.out.println();
+                System.out.println();
                 /*汇总输出reward*/
                /* reward.put("rewardZkx", agentZkx.reward);
                 reward.put("rewardCbz", agentCbz.reward);
@@ -111,17 +114,60 @@ class MainThread implements Runnable {
                 data.output(reward, writePathReward);
                 */
             }
-            /*训练模式*/
-            else {
-                /*包含reward*/
-                setStateForTrainingOutPut();
-                String writePathState = "src/main/resources/nextState.json";
-                data.output(state, writePathState);
-            }
-            System.out.println();
-            System.out.println();
         }
+        else {
+            double nowTime= (double) stateMap.get("Time");
+            long Time= (long) nowTime;
+            if(Time!=traingingTimeOld){
+                /*训练模式*/
+                    //设置训练时state、
+                    double value=Double.valueOf(stateMap.get("blood1").toString());
+                    int var=(int)value;
+                    agentZkx.setState("blood",var);
 
+                    value=Double.valueOf( stateMap.get("sol1").toString());
+                    var=(int)value;
+                    agentZkx.setState("sol",var );
+
+                    value=Double.valueOf( stateMap.get("dis1").toString());
+                    var= (int) value;
+                    agentZkx.setState("dis",var );
+
+                    value= Double.valueOf( stateMap.get("act1").toString());
+                    var= (int) value;
+                    agentZkx.setState("act",var);
+
+                    value=Double.valueOf(stateMap.get("blood2").toString());
+                    var= (int) value;
+                    agentCbz.setState("blood",var);
+
+                    value=Double.valueOf( stateMap.get("sol2").toString());
+                    var= (int) value;
+                    agentCbz.setState("sol",var);
+
+                    value= Double.valueOf( stateMap.get("dis2").toString());
+                    var=(int)value;
+                    agentCbz.setState("dis",var);
+
+                    value=Double.valueOf( stateMap.get("act2").toString());
+                    var=(int)value;
+                    agentCbz.setState("act",var);
+
+                    traingingTimeOld= (long) ((double)stateMap.get("Time"));
+                    /*进行打斗*/
+                    agentZkx.attack(agentCbz);
+                    agentCbz.attack(agentZkx);
+                    /*死亡处理判断*/
+                    deadZ = agentZkx.judgeDie();
+                    deadC = agentCbz.judgeDie();
+                    /*包含reward*/
+                    setStateForTrainingOutPut();
+                    String writePathState = "src/main/resources/nextState.json";
+                    data.output(state, writePathState);
+                    System.out.println();
+                    System.out.println();
+                }
+        }
     }
 
     private void setState(Long action, Agent agent) {
