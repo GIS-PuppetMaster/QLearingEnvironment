@@ -5,7 +5,7 @@ import java.util.LinkedHashMap;
 
 public class MainScreenOutput {
     /*Agent的动作列表*/
-    final Hashtable action=new Hashtable(){
+    final static Hashtable action=new Hashtable(){
         {
             //始化action
             put(0,"NULL");
@@ -20,7 +20,7 @@ public class MainScreenOutput {
         }
     };//无排序，线程安全
 
-    public void showStateUpdate(Agent agent){
+    public static void showStateUpdate(Agent agent){
         LinkedHashMap state;
         state=agent.getState();
         Iterator iterator=state.keySet().iterator();
@@ -29,6 +29,16 @@ public class MainScreenOutput {
         while(iterator.hasNext()){
             Object key=iterator.next();
             System.out.println("        "+key.toString()+":"+action.get(state.get(key)));
+        }
+    }
+    public static void showCurrentState(Agent agent){
+        LinkedHashMap state=agent.getState();
+        Iterator iterator=state.keySet().iterator();
+        System.out.println("CurrentState:");
+        System.out.println("    "+agent.getId()+":");
+        while(iterator.hasNext()){
+            Object key=iterator.next();
+            System.out.println("        "+key.toString()+":"+state.get(key));
         }
     }
 }
